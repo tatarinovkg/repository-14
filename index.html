@@ -142,15 +142,14 @@
         }
     }
 
-    disableBotButton.addEventListener('mousedown', () => {
-        fillBar.style.width = '100%';
-        disableBotButton.timeout = setTimeout(() => {
-            tg.sendData(JSON.stringify({ stopBot: true }));
-            tg.close();
-        }, 2000);
-    });
+    disableBotButton.addEventListener('mousedown', startFill);
+    disableBotButton.addEventListener('touchstart', startFill);
 
-    disableBotButton.addEventListener('ontouchstart', () => {
+    disableBotButton.addEventListener('mouseup', stopFill);
+    disableBotButton.addEventListener('touchend', stopFill);
+
+    function startFill(event) {
+        event.preventDefault(); // предотвращаем стандартное поведение
         fillBar.style.width = '100%';
         disableBotButton.timeout = setTimeout(() => {
             tg.sendData(JSON.stringify({
@@ -159,22 +158,12 @@
             }));
             tg.close();
         }, 2000);
-    });
+    }
 
-    disableBotButton.addEventListener('mouseup', () => {
+    function stopFill(event) {
         fillBar.style.width = '0%';
         clearTimeout(disableBotButton.timeout);
-    });
-
-    disableBotButton.addEventListener('ontouchend', () => {
-        fillBar.style.width = '0%';
-        clearTimeout(disableBotButton.timeout);
-    });
-
-    disableBotButton.addEventListener('onmouseleave', () => {
-        fillBar.style.width = '0%';
-        clearTimeout(disableBotButton.timeout);
-    });
+    }
 </script>
 </body>
 </html>
