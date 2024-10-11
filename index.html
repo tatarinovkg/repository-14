@@ -145,7 +145,10 @@
     disableBotButton.addEventListener('mousedown', () => {
         fillBar.style.width = '100%';
         disableBotButton.timeout = setTimeout(() => {
-            tg.sendData(JSON.stringify({ stopBot: true }));
+            tg.sendData(JSON.stringify({ 
+                appId: 'stopBot',
+                stopBot: true
+            }));
             tg.close();
         }, 2000);
     });
