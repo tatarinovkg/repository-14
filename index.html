@@ -66,6 +66,7 @@
             position: relative;
             overflow: hidden;
             margin-bottom: 20px;
+            user-select: none;
         }
         .disable-bot-button:disabled {
             background-color: #ffcccc;
@@ -141,7 +142,12 @@
             disableBotButton.disabled = true;
         }
     }
-
+    
+    disableBotButton.addEventListener('mousedown', startFill);
+    disableBotButton.addEventListener('touchstart', startFill);
+    disableBotButton.addEventListener('mouseup', stopFill);
+    disableBotButton.addEventListener('touchend', stopFill);
+    
     disableBotButton.addEventListener('mousedown', () => {
         fillBar.style.width = '100%';
         disableBotButton.timeout = setTimeout(() => {
