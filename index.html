@@ -52,6 +52,7 @@
             font-size: 16px;
             transition: background-color 0.3s;
             margin-top: 20px;
+            user-select: none;
         }
         .submit-button {
             background-color: #007bff;
@@ -206,6 +207,15 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ restartBot: true })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                tg.close(); // Закрываем окно только при успешном перезапуске
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при перезапуске:', error); // Только логирование ошибки
         });
     }
 </script>
