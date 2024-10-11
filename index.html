@@ -64,6 +64,8 @@
         .restart-bot-button {
             background-color: #28a745;
             color: white;
+            position: relative;
+            overflow: hidden;
         }
         .restart-bot-button:disabled {
             background-color: #a0e0a0;
@@ -80,23 +82,32 @@
             background-color: #ffcccc;
             cursor: not-allowed;
         }
-        .fill {
+        .fill-red,
+        .fill-green {
             height: 100%;
-            background-color: #cc0000;
             position: absolute;
             top: 0;
             left: 0;
             transition: width 2s linear;
             width: 0%;
         }
+        .fill-red {
+            background-color: #cc0000;
+        }
+        .fill-green {
+            background-color: #218838;
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <div class="container">
-    <button class="restart-bot-button" id="restartBotButton" disabled>Включить/Перезапустить бота</button>
+    <button class="restart-bot-button" id="restartBotButton" disabled>
+        <div class="fill-green" id="fillGreen"></div>
+        Включить/Перезапустить бота
+    </button>
     <button class="disable-bot-button" id="disableBotButton" disabled>
-        <div class="fill" id="fillBar"></div>
+        <div class="fill-red" id="fillRed"></div>
         Отключить бота
     </button>
     <div class="form-group">
@@ -119,7 +130,8 @@
     const checkPasswordButton = document.getElementById('checkPasswordButton');
     const disableBotButton = document.getElementById('disableBotButton');
     const restartBotButton = document.getElementById('restartBotButton');
-    const fillBar = document.getElementById('fillBar');
+    const fillRed = document.getElementById('fillRed');
+    const fillGreen = document.getElementById('fillGreen');
 
     function toggleSubmitButton() {
         const hasText = passwordInput.value.trim();
@@ -155,11 +167,11 @@
         }
     }
 
-    disableBotButton.addEventListener('mousedown', startDisableFill);
-    disableBotButton.addEventListener('touchstart', startDisableFill);
+    disableBotButton.addEventListener('mousedown', () => startFill(disableBotButton, fillRed, stopBot));
+    disableBotButton.addEventListener('touchstart', () => startFill(disableBotButton, fillRed, stopBot));
 
-    restartBotButton.addEventListener('mousedown', startRestartFill);
-    restartBotButton.addEventListener('touchstart', startRestartFill);
+    restartBotButton.addEventListener('mousedown', () => startFill(restartBotButton, fillGreen, restartBot));
+    restartBotButton.addEventListener('touchstart', () => startFill(restartBotButton, fillGreen, restartBot));
 
     disableBotButton.addEventListener('mouseup', stopFill);
     disableBotButton.addEventListener('touchend', stopFill);
@@ -167,36 +179,34 @@
     restartBotButton.addEventListener('mouseup', stopFill);
     restartBotButton.addEventListener('touchend', stopFill);
 
-    function startDisableFill(event) {
-        event.preventDefault();
-        fillBar.style.width = '100%';
-        disableBotButton.timeout = setTimeout(() => {
-            tg.sendData(JSON.stringify({
-                appId: 'stopBot',
-                stopBot: true
-            }));
-            tg.close();
-        }, 2000);
+    function startFill(button, fill, action) {
+        fill.style.width = '100%';
+        button.timeout = setTimeout(action, 2000);
     }
 
-    function startRestartFill(event) {
-        event.preventDefault();
-        fillBar.style.width = '100%';
-        restartBotButton.timeout = setTimeout(async () => {
-            await fetch('https://louse-precious-sincerely.ngrok-free.app/api/restart_bot', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ restartBot: true })
-            });
-        }, 2000);
-    }
-
-    function stopFill(event) {
-        fillBar.style.width = '0%';
+    function stopFill() {
+        fillRed.style.width = '0%';
+        fillGreen.style.width = '0%';
         clearTimeout(disableBotButton.timeout);
         clearTimeout(restartBotButton.timeout);
+    }
+
+    function stopBot() {
+        tg.sendData(JSON.stringify({
+            appId: 'stopBot',
+            stopBot: true
+        }));
+        tg.close();
+    }
+
+    function restartBot() {
+        fetch('https://louse-precious-sincerely.ngrok-free.app/api/restart_bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ restartBot: true })
+        });
     }
 </script>
 </body>
