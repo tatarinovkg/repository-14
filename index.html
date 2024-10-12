@@ -42,8 +42,7 @@
             box-shadow: 0 0 5px rgba(0, 204, 0, 0.5);
         }
         .submit-button,
-        .disable-bot-button,
-        .restart-bot-button {
+        .disable-bot-button {
             width: 90%;
             padding: 15px;
             border: none;
@@ -52,7 +51,6 @@
             font-size: 16px;
             transition: background-color 0.3s;
             margin-top: 20px;
-            user-select: none;
         }
         .submit-button {
             background-color: #007bff;
@@ -60,16 +58,6 @@
         }
         .submit-button:disabled {
             background-color: #99ccff;
-            cursor: not-allowed;
-        }
-        .restart-bot-button {
-            background-color: #28a745;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        .restart-bot-button:disabled {
-            background-color: #a0e0a0;
             cursor: not-allowed;
         }
         .disable-bot-button {
@@ -83,32 +71,22 @@
             background-color: #ffcccc;
             cursor: not-allowed;
         }
-        .fill-red,
-        .fill-green {
+        .fill {
             height: 100%;
+            background-color: #cc0000;
             position: absolute;
             top: 0;
             left: 0;
             transition: width 2s linear;
             width: 0%;
         }
-        .fill-red {
-            background-color: #cc0000;
-        }
-        .fill-green {
-            background-color: #218838;
-        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <div class="container">
-    <button class="restart-bot-button" id="restartBotButton" disabled>
-        <div class="fill-green" id="fillGreen"></div>
-        Включить/Перезапустить бота
-    </button>
     <button class="disable-bot-button" id="disableBotButton" disabled>
-        <div class="fill-red" id="fillRed"></div>
+        <div class="fill" id="fillBar"></div>
         Отключить бота
     </button>
     <div class="form-group">
@@ -130,18 +108,16 @@
     const passwordInput = document.getElementById('password');
     const checkPasswordButton = document.getElementById('checkPasswordButton');
     const disableBotButton = document.getElementById('disableBotButton');
-    const restartBotButton = document.getElementById('restartBotButton');
-    const fillRed = document.getElementById('fillRed');
-    const fillGreen = document.getElementById('fillGreen');
+    const fillBar = document.getElementById('fillBar');
 
     function toggleSubmitButton() {
         const hasText = passwordInput.value.trim();
         checkPasswordButton.disabled = !hasText;
         passwordInput.classList.remove('success', 'error');
 
+        // Если поле ввода пустое, кнопка "Отключить бота" становится неактивной
         if (!hasText) {
             disableBotButton.disabled = true;
-            restartBotButton.disabled = true;
         }
     }
 
@@ -159,64 +135,33 @@
             passwordInput.classList.remove('error');
             passwordInput.classList.add('success');
             disableBotButton.disabled = false;
-            restartBotButton.disabled = false;
         } else {
             passwordInput.classList.remove('success');
             passwordInput.classList.add('error');
             disableBotButton.disabled = true;
-            restartBotButton.disabled = true;
         }
     }
 
-    disableBotButton.addEventListener('mousedown', () => startFill(disableBotButton, fillRed, stopBot));
-    disableBotButton.addEventListener('touchstart', () => startFill(disableBotButton, fillRed, stopBot));
-
-    restartBotButton.addEventListener('mousedown', () => startFill(restartBotButton, fillGreen, restartBot));
-    restartBotButton.addEventListener('touchstart', () => startFill(restartBotButton, fillGreen, restartBot));
-
+    disableBotButton.addEventListener('mousedown', startFill);
+    disableBotButton.addEventListener('touchstart', startFill);
     disableBotButton.addEventListener('mouseup', stopFill);
     disableBotButton.addEventListener('touchend', stopFill);
 
-    restartBotButton.addEventListener('mouseup', stopFill);
-    restartBotButton.addEventListener('touchend', stopFill);
-
-    function startFill(button, fill, action) {
-        fill.style.width = '100%';
-        button.timeout = setTimeout(action, 2000);
+    function startFill(event) {
+        event.preventDefault();
+        fillBar.style.width = '100%';
+        disableBotButton.timeout = setTimeout(() => {
+            tg.sendData(JSON.stringify({
+                appId: 'stopBot',
+                stopBot: true
+            }));
+            tg.close();
+        }, 2000);
     }
 
-    function stopFill() {
-        fillRed.style.width = '0%';
-        fillGreen.style.width = '0%';
+    function stopFill(event) {
+        fillBar.style.width = '0%';
         clearTimeout(disableBotButton.timeout);
-        clearTimeout(restartBotButton.timeout);
-    }
-
-    function stopBot() {
-        tg.sendData(JSON.stringify({
-            appId: 'stopBot',
-            stopBot: true
-        }));
-        tg.close();
-    }
-
-    function restartBot() {
-        fetch('https://louse-precious-sincerely.ngrok-free.app/api/restart_bot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ restartBot: true })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                tg.close(); // Закрываем окно только при успешном перезапуске
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка при перезапуске:', error); // Только логирование ошибки
-        });
     }
 </script>
 </body>
